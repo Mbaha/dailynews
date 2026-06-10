@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Keeps the folder watcher alive at login and restarts it on crash. -->
+  <key>Label</key>
+  <string>com.dikgang.watcher</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/mandersonk/code/javaScript/dailynews/launchd/watcher.sh</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/mandersonk/Library/Logs/dikgang-watcher.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/mandersonk/Library/Logs/dikgang-watcher.log</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>DATABASE_URL</key>
+    <string>postgres://localhost/dikgang</string>
+  </dict>
+</dict>
+</plist>

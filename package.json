@@ -11,12 +11,16 @@
     "seed:holidays": "node scripts/seed-holidays.mjs",
     "embed": "node scripts/embed-chunks.mjs",
     "ingest": "node scripts/ingest.mjs",
+    "pipeline": "node scripts/pipeline.mjs",
+    "watch": "node scripts/watcher.mjs",
+    "mail:fetch": "node scripts/mail-fetch.mjs",
     "inspect:pdfs": "python3 scripts/inspect_pdfs.py"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",
     "@types/pg": "latest",
     "date-holidays": "^3.30.2",
+    "httpntlm": "^1.8.13",
     "next": "latest",
     "pg": "latest",
     "react": "latest",
