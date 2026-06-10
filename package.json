@@ -1,0 +1,33 @@
+{
+  "name": "dikgang",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "setup:db": "node scripts/setup-db.mjs",
+    "seed:holidays": "node scripts/seed-holidays.mjs",
+    "embed": "node scripts/embed-chunks.mjs",
+    "ingest": "node scripts/ingest.mjs",
+    "inspect:pdfs": "python3 scripts/inspect_pdfs.py"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.102.0",
+    "@types/pg": "latest",
+    "date-holidays": "^3.30.2",
+    "next": "latest",
+    "pg": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
+  }
+}
