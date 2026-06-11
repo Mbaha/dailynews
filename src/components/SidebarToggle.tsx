@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 
 export function SidebarToggle() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   useEffect(() => {
-    const saved = localStorage.getItem('sidebarCollapsed') === '1';
-    setCollapsed(saved);
-    if (saved) document.documentElement.dataset.sidebar = 'collapsed';
+    const saved = localStorage.getItem('sidebarCollapsed');
+    const isCollapsed = saved === null ? true : saved === '1';
+    setCollapsed(isCollapsed);
+    if (isCollapsed) document.documentElement.dataset.sidebar = 'collapsed';
+    else delete document.documentElement.dataset.sidebar;
   }, []);
 
   function toggle() {

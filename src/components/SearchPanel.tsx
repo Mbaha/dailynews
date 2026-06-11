@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 
 type SearchResult = {
   chunk_id: string;
@@ -27,6 +27,17 @@ export function SearchPanel({ issueId }: { issueId: string | null }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleMouseDown(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setResults([]);
+      }
+    }
+    document.addEventListener('mousedown', handleMouseDown);
+    return () => document.removeEventListener('mousedown', handleMouseDown);
+  }, []);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -42,7 +53,7 @@ export function SearchPanel({ issueId }: { issueId: string | null }) {
   }
 
   return (
-    <div className="searchPanel">
+    <div className="searchPanel" ref={containerRef}>
       <div className="topbar">
         <div className="scopeSwitch" aria-label="Search scope">
           <button type="button" className={scope === 'archive' ? 'active' : ''} onClick={() => setScope('archive')}>Archive</button>
@@ -54,14 +65,21 @@ export function SearchPanel({ issueId }: { issueId: string | null }) {
           <button type="button" className={mode === 'semantic' ? 'active' : ''} onClick={() => setMode('semantic')}>Semantic</button>
         </div>
         <form className="searchBox" onSubmit={submit}>
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search the archive — diamonds, kgotla, sport, tenders…" />
+          <input
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); if (!e.target.value.trim()) setResults([]); }}
+            placeholder="Search the archive — diamonds, kgotla, sport, tenders…"
+          />
           <button type="submit">{loading ? 'Searching…' : 'Search'}</button>
         </form>
       </div>
 
       {results.length > 0 && (
         <section className="searchResults">
-          <div className="resultsHeader">{results.length} {mode} matches</div>
+          <div className="resultsHeader">
+            <span>{results.length} {mode} matches</span>
+            <button className="resultsClose" type="button" onClick={() => setResults([])} aria-label="Close results">×</button>
+          </div>
           {results.map((result) => (
             <a className="resultItem" key={result.chunk_id} href={`/?issue=${result.issue_id}&page=${result.page_number}`}>
               <div>

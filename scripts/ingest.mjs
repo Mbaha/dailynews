@@ -77,7 +77,7 @@ async function callAnthropicToc(prompt) {
         max_tokens: 512,
         messages: [{ role: 'user', content: prompt }],
       }),
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(60000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -136,14 +136,19 @@ async function main() {
   const jobId = job.rows[0].id;
   try {
     const pdfs = await findPdfs(PAPERS_DIR);
-    let inserted = 0, updated = 0, skipped = 0;
+    let inserted = 0, updated = 0, skipped = 0, errored = 0;
     for (const pdf of pdfs) {
-      const result = await ingestPdf(client, pdf);
-      if (result === 'inserted') inserted++;
-      else if (result === 'updated') updated++;
-      else skipped++;
+      try {
+        const result = await ingestPdf(client, pdf);
+        if (result === 'inserted') inserted++;
+        else if (result === 'updated') updated++;
+        else skipped++;
+      } catch (err) {
+        errored++;
+        console.warn(`[ingest] Skipping ${path.basename(pdf)}: ${err.message}`);
+      }
     }
-    const message = `Ingest complete. PDFs=${pdfs.length}, inserted=${inserted}, updated=${updated}, skipped=${skipped}`;
+    const message = `Ingest complete. PDFs=${pdfs.length}, inserted=${inserted}, updated=${updated}, skipped=${skipped}, errored=${errored}`;
     await client.query('UPDATE ingest_jobs SET status=$1, message=$2, finished_at=now() WHERE id=$3', ['complete', message, jobId]);
     console.log(message);
   } catch (err) {

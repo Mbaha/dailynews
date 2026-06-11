@@ -212,7 +212,8 @@ h3 { margin: 0 0 12px; font-size: 24px; letter-spacing: -.03em; }
 .chatCard .miniSwitch { display: inline-flex; }
 .chatCard textarea { border-radius: 18px; min-height: 92px; resize: vertical; }
 .chatCard button { width: 100%; margin-top: 10px; }
-.chatAnswerHeader { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.chatAnswerHeader { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 8px; }
+.chatModelBadge { font: 500 10px IBM Plex Mono, monospace; padding: 2px 8px; border-radius: 999px; background: rgba(180,120,0,.12); color: #b47800; border: 1px solid rgba(180,120,0,.3); white-space: nowrap; }
 .chatCopyBtn { width: auto !important; margin-top: 0 !important; font: 600 11px IBM Plex Mono, monospace; padding: 3px 10px; border-radius: 999px; border: 1px solid rgba(31,91,72,.3); background: transparent; color: var(--green); cursor: pointer; }
 .chatCopyBtn:hover { background: rgba(31,91,72,.12); }
 .chatTextareaWrap { position: relative; }
@@ -225,8 +226,10 @@ h3 { margin: 0 0 12px; font-size: 24px; letter-spacing: -.03em; }
 .chatTable thead tr { background: rgba(31,91,72,.12); }
 .chatTable th { font-weight: 700; white-space: nowrap; }
 .chatTable tbody tr:nth-child(even) { background: rgba(31,91,72,.05); }
-.searchResults { position: absolute; top: 100%; left: 0; right: 0; margin-top: 8px; border: 1px solid var(--line); border-radius: 22px; background: rgba(255,250,240,.94); box-shadow: var(--shadow); max-height: 360px; overflow: auto; z-index: 20; }
-.resultsHeader { position: sticky; top: 0; padding: 12px 16px; background: var(--blue); color: var(--ink); font: 700 12px IBM Plex Mono, monospace; text-transform: uppercase; letter-spacing: .1em; }
+.searchResults { position: absolute; top: 100%; right: 0; width: 33vw; margin-top: 8px; border: 1px solid var(--line); border-radius: 22px; background: rgba(255,250,240,.94); box-shadow: var(--shadow); max-height: 360px; overflow: auto; z-index: 20; }
+.resultsHeader { position: sticky; top: 0; padding: 12px 16px; background: var(--blue); color: var(--ink); font: 700 12px IBM Plex Mono, monospace; text-transform: uppercase; letter-spacing: .1em; display: flex; justify-content: space-between; align-items: center; }
+.resultsClose { background: none; border: none; font-size: 20px; line-height: 1; cursor: pointer; color: var(--ink); opacity: .6; padding: 0 4px; border-radius: 4px; }
+.resultsClose:hover { opacity: 1; background: rgba(0,0,0,.1); }
 .resultItem { display: block; padding: 14px 16px; border-top: 1px solid var(--line); }
 .resultItem:hover { background: rgba(184, 110, 27, .12); }
 .resultItem strong { display: block; }
@@ -245,3 +248,40 @@ h3 { margin: 0 0 12px; font-size: 24px; letter-spacing: -.03em; }
   .searchMode { width: max-content; }
   .pdfSurface { flex: none; height: 68vh; min-height: 440px; margin: 10px; }
 }
+
+/* ── Date review interface ───────────────────────────────────────────── */
+.reviewPage { display: flex; flex-direction: column; height: 100vh; background: var(--paper); color: var(--ink); font-family: IBM Plex Mono, monospace; }
+.reviewHeader { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--paper-deep); }
+.reviewShell { display: grid; grid-template-columns: 280px 1fr; flex: 1; min-height: 0; }
+.reviewSidebar { display: flex; flex-direction: column; border-right: 1px solid var(--line); background: var(--paper-deep); overflow: hidden; }
+.reviewSidebarHead { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--line); color: var(--muted); }
+.reviewCount { background: var(--green); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; }
+.reviewQueue { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
+.reviewQueueItem { padding: 10px 16px; cursor: pointer; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px; transition: background .12s; }
+.reviewQueueItem:hover { background: rgba(31,91,72,.07); }
+.reviewQueueItem.active { background: rgba(31,91,72,.13); border-left: 3px solid var(--green); padding-left: 13px; }
+.reviewQueueName { font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reviewQueueHint { font-size: 10px; color: var(--muted); }
+.reviewQueuePages { font-size: 10px; color: var(--muted); }
+.reviewHomeLink { display: block; padding: 12px 16px; font-size: 11px; color: var(--green); text-decoration: none; border-top: 1px solid var(--line); }
+.reviewHomeLink:hover { text-decoration: underline; }
+.reviewMain { display: grid; grid-template-columns: 1fr 320px; min-height: 0; overflow: hidden; }
+.reviewPdfWrap { overflow: hidden; background: #ccc; }
+.reviewPdf { width: 100%; height: 100%; border: none; display: block; }
+.reviewForm { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; border-left: 1px solid var(--line); background: var(--paper-deep); }
+.reviewFormTitle { font-size: 12px; font-weight: 700; word-break: break-all; }
+.reviewFormHint { font-size: 11px; color: var(--muted); }
+.reviewPreview { font-size: 10px; background: rgba(0,0,0,.06); padding: 8px; border-radius: 4px; white-space: pre-wrap; word-break: break-word; overflow: hidden; color: var(--muted); margin: 0; line-height: 1.5; }
+.reviewLabel { font-size: 11px; font-weight: 600; color: var(--ink); }
+.reviewDateInput { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); font-family: inherit; font-size: 13px; box-sizing: border-box; }
+.reviewDateInput:focus { outline: none; border-color: var(--green); }
+.reviewError { font-size: 11px; color: var(--red); margin: 0; }
+.reviewActions { display: flex; gap: 8px; margin-top: 4px; }
+.reviewConfirmBtn { flex: 1; padding: 9px; background: var(--green); color: #fff; border: none; border-radius: 6px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.reviewConfirmBtn:disabled { opacity: .45; cursor: not-allowed; }
+.reviewConfirmBtn:not(:disabled):hover { opacity: .88; }
+.reviewDiscardBtn { padding: 9px 14px; background: transparent; color: var(--red); border: 1px solid rgba(143,47,29,.35); border-radius: 6px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.reviewDiscardBtn:disabled { opacity: .45; cursor: not-allowed; }
+.reviewDiscardBtn:not(:disabled):hover { background: rgba(143,47,29,.07); }
+.reviewEmpty { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; gap: 12px; color: var(--muted); }
+.reviewEmptyMark { font-size: 48px; color: var(--green); }

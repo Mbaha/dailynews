@@ -47,6 +47,7 @@ export function ChatPanel({ issueId }: { issueId: string | null }) {
   const [sources, setSources] = useState<Source[]>([]);
   const [steps, setSteps] = useState<AnalyseStep[]>([]);
   const [loading, setLoading] = useState(false);
+  const [answerModel, setAnswerModel] = useState<'anthropic' | 'ollama' | null>(null);
   const [copiedAnswer, setCopiedAnswer] = useState(false);
   const [copiedQuestion, setCopiedQuestion] = useState(false);
 
@@ -70,6 +71,7 @@ export function ChatPanel({ issueId }: { issueId: string | null }) {
     setAnswer('');
     setSources([]);
     setSteps([]);
+    setAnswerModel(null);
 
     if (mode === 'analyse') {
       const response = await fetch('/api/analytics', {
@@ -113,6 +115,8 @@ export function ChatPanel({ issueId }: { issueId: string | null }) {
           try {
             const meta = JSON.parse(metaBuf.slice(0, nl));
             if (Array.isArray(meta.sources)) setSources(meta.sources);
+            if (meta.model === 'ollama') setAnswerModel('ollama');
+            else setAnswerModel('anthropic');
           } catch {}
           metaDone = true;
           const remainder = metaBuf.slice(nl + 1);
@@ -155,6 +159,9 @@ export function ChatPanel({ issueId }: { issueId: string | null }) {
             <button className="chatCopyBtn" onClick={copyAnswer} type="button">
               {copiedAnswer ? '✓ Copied' : 'Copy response'}
             </button>
+            {answerModel === 'ollama' && (
+              <span className="chatModelBadge" title="Anthropic unavailable — answered by local model">local model</span>
+            )}
           </div>
           <Markdown components={mdComponents} remarkPlugins={[remarkGfm]}>{answer}</Markdown>
           {steps.length > 0 && (

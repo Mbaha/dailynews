@@ -1,6 +1,7 @@
 import { pool } from '@/lib/db';
 import { EMBED_MODEL, embedText, vectorLiteral } from '@/lib/ollama';
-import { chatStream } from '@/lib/anthropic';
+import { chatStream as anthropicChatStream } from '@/lib/anthropic';
+import { chatStream as ollamaChatStream } from '@/lib/ollama';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -117,12 +118,20 @@ export async function POST(request: Request) {
   const prompt = `You are dikgang, a careful assistant for a Botswana Daily News archive.\n\nAnswer the user's question using only the provided newspaper excerpts. Cite sources inline using bracket numbers like [1] or [2]. If the excerpts do not contain enough evidence, say so clearly. Do not invent facts.\n\nQuestion:\n${question}\n\nNewspaper excerpts:\n${context}\n\nAnswer with a concise explanation and a Sources section.`;
 
   const encoder = new TextEncoder();
-  const answerStream = await chatStream(prompt);
+  let answerStream: ReadableStream<Uint8Array>;
+  let model = 'anthropic';
+  try {
+    answerStream = await anthropicChatStream(prompt);
+  } catch (err) {
+    console.warn('[chat] Anthropic unavailable, falling back to Ollama:', (err as Error).message);
+    answerStream = await ollamaChatStream(prompt);
+    model = 'ollama';
+  }
 
-  // Protocol: first line = JSON metadata (sources), remainder = raw answer tokens
+  // Protocol: first line = JSON metadata (sources + model), remainder = raw answer tokens
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      controller.enqueue(encoder.encode(JSON.stringify({ sources }) + '\n'));
+      controller.enqueue(encoder.encode(JSON.stringify({ sources, model }) + '\n'));
       const reader = answerStream.getReader();
       while (true) {
         const { done, value } = await reader.read();

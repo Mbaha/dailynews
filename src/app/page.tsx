@@ -24,7 +24,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
     getGapStatsByYear().catch(() => []),
     current ? getIssueToc(current.id).catch(() => []) : Promise.resolve([])
   ]);
-  const pdfSrc = current ? `/api/pdf/${current.id}#page=${selectedPage}` : null;
+  const pdfSrc = current ? `/api/pdf/${current.id}#page=${selectedPage}&view=FitH` : null;
 
   const newsItems = tocItems.filter((item) => item.category !== 'classified');
   const classifiedItems = tocItems.filter((item) => item.category === 'classified');

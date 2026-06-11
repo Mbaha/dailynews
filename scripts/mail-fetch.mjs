@@ -261,6 +261,15 @@ async function markAsRead(itemId, changeKey) {
     </m:UpdateItem>`);
 }
 
+async function deleteItem(itemId, changeKey) {
+  await ewsCall(`
+    <m:DeleteItem DeleteType="MoveToDeletedItems">
+      <m:ItemIds>
+        <t:ItemId Id="${itemId}" ChangeKey="${changeKey}"/>
+      </m:ItemIds>
+    </m:DeleteItem>`);
+}
+
 // ---------------------------------------------------------------------------
 // File helpers
 // ---------------------------------------------------------------------------
@@ -276,6 +285,26 @@ async function resolveTargetPath(name) {
     const ext = path.extname(safe);
     return path.join(PAPERS_DIR, `${path.basename(safe, ext)}-${Date.now()}${ext}`);
   } catch { return target; }
+}
+
+// ---------------------------------------------------------------------------
+// Subject filter — only download Daily News editions
+// ---------------------------------------------------------------------------
+
+// Normalises a subject for matching: maps Unicode Mathematical Bold letters
+// to their ASCII equivalents (handles subjects like "𝐃𝐀𝐈𝐋𝐘 𝐍𝐄𝐖𝐒"), then
+// lowercases and strips whitespace before comparing.
+function normSubject(s) {
+  return [...s].map(ch => {
+    const cp = ch.codePointAt(0);
+    if (cp >= 0x1D400 && cp <= 0x1D419) return String.fromCharCode(cp - 0x1D400 + 65); // Bold A–Z
+    if (cp >= 0x1D41A && cp <= 0x1D433) return String.fromCharCode(cp - 0x1D41A + 97); // Bold a–z
+    return ch;
+  }).join('').toLowerCase().replace(/\s+/g, '');
+}
+
+function isDailyNews(subject) {
+  return normSubject(subject).includes('dailynews');
 }
 
 // ---------------------------------------------------------------------------
@@ -318,6 +347,12 @@ try {
       if (state.processed.includes(id)) continue;
       console.log(`[mail] Message: "${subject}"`);
 
+      if (!isDailyNews(subject)) {
+        console.log('[mail]   Subject is not a Daily News edition — skipping.');
+        state.processed.push(id);   // remember it; don't re-check or mark as read
+        continue;
+      }
+
       const attachments = await getAttachmentIds(id, changeKey);
       if (attachments.length === 0) {
         console.log('[mail]   No PDF attachments — skipping.');
@@ -334,7 +369,8 @@ try {
         downloaded++;
       }
 
-      await markAsRead(id, changeKey);
+      await deleteItem(id, changeKey);
+      console.log('[mail]   Moved to Deleted Items.');
       state.processed.push(id);
     }
   }
