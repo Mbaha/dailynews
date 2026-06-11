@@ -114,6 +114,10 @@ try {
 
 log(`Watching ${PAPERS_DIR}`);
 
+// Catch any PDFs dropped while the watcher was not running (e.g. lid closed).
+log('Running startup pipeline check...');
+runPipeline();
+
 watch(PAPERS_DIR, { recursive: true }, async (eventType, filename) => {
   if (!filename) return;
   if (!filename.toLowerCase().endsWith('.pdf')) return;
