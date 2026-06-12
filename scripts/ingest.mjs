@@ -43,7 +43,7 @@ async function extractPageHeadlines(text, pageNumber) {
 The text was extracted with pdftotext from page ${pageNumber}. Multi-column layout may have garbled the order.
 
 Return ONLY a valid JSON object with two arrays:
-- "news": article headlines — short (3–12 words), Title Case or ALL CAPS. Exclude bylines ("By Name"), captions, dates, page numbers, and body text.
+- "news": article headlines — up to 15 words, Title Case or ALL CAPS. Exclude bylines ("By Name"), captions, dates, page numbers, and body text.
 - "classifieds": job ads, vacancy notices, tenders, legal notices, public notices, government notices, property ads, and farm/agricultural ads.
 
 Example: {"news": ["Cabinet approves budget", "FLOODS HIT NORTH"], "classifieds": ["FARM WORKER NEEDED", "TENDER: Road upgrade"]}
@@ -51,7 +51,7 @@ Example: {"news": ["Cabinet approves budget", "FLOODS HIT NORTH"], "classifieds"
 Return {"news": [], "classifieds": []} if nothing is found. Output no other text.
 
 Page text:
-${condensed.slice(0, 3500)}`;
+${condensed.slice(0, 6000)}`;
 
   let raw = '';
   if (ANTHROPIC_API_KEY) {
@@ -74,7 +74,7 @@ async function callAnthropicToc(prompt) {
       },
       body: JSON.stringify({
         model: ANTHROPIC_TOC_MODEL,
-        max_tokens: 512,
+        max_tokens: 1024,
         messages: [{ role: 'user', content: prompt }],
       }),
       signal: AbortSignal.timeout(60000),
@@ -113,7 +113,7 @@ function parseTocItems(raw) {
     if (Array.isArray(parsed)) {
       return filterTitles(parsed, 8).map((title) => ({ title, category: 'news' }));
     }
-    const news = filterTitles(parsed.news ?? [], 8).map((title) => ({ title, category: 'news' }));
+    const news = filterTitles(parsed.news ?? [], 15).map((title) => ({ title, category: 'news' }));
     const classifieds = filterTitles(parsed.classifieds ?? [], 15).map((title) => ({ title, category: 'classified' }));
     return [...news, ...classifieds];
   } catch {

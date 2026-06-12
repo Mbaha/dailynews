@@ -13,6 +13,7 @@
     "ingest": "node --env-file .env.local scripts/ingest.mjs",
     "pipeline": "node --env-file .env.local scripts/pipeline.mjs",
     "watch": "node --env-file .env.local scripts/watcher.mjs",
+    "backfill-toc": "node --env-file .env.local scripts/backfill-toc.mjs",
     "mail:fetch": "node --env-file .env.local scripts/mail-fetch.mjs",
     "inspect:pdfs": "python3 scripts/inspect_pdfs.py"
   },
