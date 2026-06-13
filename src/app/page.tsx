@@ -1,10 +1,12 @@
-import { getArchiveByYear, getIssueById, getIssueToc, getNewestIssue } from '@/lib/archive';
+import { getArchiveByYear, getIssueById, getIssueToc, getIssuePageText, getNewestIssue } from '@/lib/archive';
 import { getGapStatsByYear } from '@/lib/gaps';
 import { SearchPanel } from '@/components/SearchPanel';
 import { ChatPanel } from '@/components/ChatPanel';
 import { PdfViewer } from '@/components/PdfViewer';
 import { ReaderShell } from '@/components/ReaderShell';
 import { SidebarToggle } from '@/components/SidebarToggle';
+import { MobileTabShell } from '@/components/MobileTabShell';
+import { TextReader } from '@/components/TextReader';
 
 function formatDate(iso: string | null): string {
   if (!iso) return 'Unknown date';
@@ -19,12 +21,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
   const newest = await getNewestIssue().catch(() => null);
   const selected = params.issue ? await getIssueById(params.issue).catch(() => null) : null;
   const current = selected ?? newest;
-  const [archive, stats, tocItems] = await Promise.all([
+  const [archive, stats, tocItems, pageText] = await Promise.all([
     getArchiveByYear().catch(() => []),
     getGapStatsByYear().catch(() => []),
-    current ? getIssueToc(current.id).catch(() => []) : Promise.resolve([])
+    current ? getIssueToc(current.id).catch(() => []) : Promise.resolve([]),
+    current ? getIssuePageText(current.id, selectedPage).catch(() => null) : Promise.resolve(null),
   ]);
   const pdfSrc = current ? `/api/pdf/${current.id}#page=${selectedPage}&view=FitH` : null;
+  const pdfHref = current ? `/api/pdf/${current.id}` : null;
 
   const newsItems = tocItems.filter((item) => item.category !== 'classified');
   const classifiedItems = tocItems.filter((item) => item.category === 'classified');
@@ -44,6 +48,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
         <SearchPanel issueId={current?.id ?? null} />
       </header>
 
+      <MobileTabShell>
       <section className="contentGrid">
         <div className="leftRail">
           <div className="infoCard">
@@ -138,12 +143,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
               <div className="pageSurface"><p className="muted">No PDF selected.</p></div>
             )}
           </div>
+          {pdfHref && (
+            <TextReader text={pageText ?? null} pdfHref={pdfHref} />
+          )}
         </div>
 
         <aside className="rightRail">
           <ChatPanel issueId={current?.id ?? null} />
         </aside>
       </section>
+      </MobileTabShell>
     </ReaderShell>
   );
 }

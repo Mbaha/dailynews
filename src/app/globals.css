@@ -226,6 +226,18 @@ h3 { margin: 0 0 12px; font-size: 24px; letter-spacing: -.03em; }
 .chatTable thead tr { background: rgba(31,91,72,.12); }
 .chatTable th { font-weight: 700; white-space: nowrap; }
 .chatTable tbody tr:nth-child(even) { background: rgba(31,91,72,.05); }
+.mobileTabShell { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.mobileTabBar { display: none; }
+
+/* ── Text reader (mobile primary, desktop hidden) ─────────────────────── */
+.textReader { display: none; }
+.textReaderBody { padding: 20px 20px 0; font-size: 17px; line-height: 1.7; }
+.textReaderBody p { margin: 0 0 1.1em; }
+.textReaderFooter { padding: 16px 20px 20px; }
+.textReaderPdfLink { font: 700 13px IBM Plex Mono, monospace; color: var(--green); text-decoration: none; border: 1px solid rgba(31,91,72,.3); padding: 8px 16px; border-radius: 999px; display: inline-block; }
+.textReaderPdfLink:hover { background: rgba(31,91,72,.08); }
+.textReaderEmpty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; height: 100%; color: var(--muted); text-align: center; padding: 32px; }
+
 .searchResults { position: absolute; top: 100%; right: 0; width: 33vw; margin-top: 8px; border: 1px solid var(--line); border-radius: 22px; background: rgba(255,250,240,.94); box-shadow: var(--shadow); max-height: 360px; overflow: auto; z-index: 20; }
 .resultsHeader { position: sticky; top: 0; padding: 12px 16px; background: var(--blue); color: var(--ink); font: 700 12px IBM Plex Mono, monospace; text-transform: uppercase; letter-spacing: .1em; display: flex; justify-content: space-between; align-items: center; }
 .resultsClose { background: none; border: none; font-size: 20px; line-height: 1; cursor: pointer; color: var(--ink); opacity: .6; padding: 0 4px; border-radius: 4px; }
@@ -285,3 +297,100 @@ h3 { margin: 0 0 12px; font-size: 24px; letter-spacing: -.03em; }
 .reviewDiscardBtn:not(:disabled):hover { background: rgba(143,47,29,.07); }
 .reviewEmpty { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; gap: 12px; color: var(--muted); }
 .reviewEmptyMark { font-size: 48px; color: var(--green); }
+
+/* ── Phone layout (≤640px) ───────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Full-height app, no page scroll — tabs handle navigation */
+  .app { height: 100dvh !important; overflow: hidden !important; }
+
+  /* Slim header */
+  .siteHeader { padding: 8px 12px; gap: 10px; }
+  .brandMark { width: 36px; height: 36px; font-size: 20px; border-radius: 4px 14px 4px 14px; box-shadow: 3px 3px 0 rgba(0,60,120,.25); }
+  h1 { font-size: 22px; }
+  .brandBlock p { display: none; }
+  .sidebarToggleBtn { display: none; }
+
+  /* Search — keep just the input+button, hide scope/mode pickers */
+  .topbar { display: block; }
+  .scopeSwitch, .miniSwitch.searchMode { display: none; }
+  .searchResults {
+    position: fixed;
+    top: auto;
+    right: 8px;
+    bottom: calc(62px + env(safe-area-inset-bottom));
+    left: 8px;
+    width: auto;
+    max-height: 55vh;
+    z-index: 100;
+  }
+
+  /* Content grid — flat, no gaps, no padding */
+  .contentGrid { grid-template-columns: 1fr; padding: 0; gap: 0; overflow: hidden; flex: 1; }
+
+  /* All three panels hidden; data-tab reveals exactly one */
+  .leftRail, .readerPane, .rightRail { display: none !important; }
+
+  /* Browse tab — scrollable card stack */
+  [data-tab="browse"] .leftRail {
+    display: flex !important;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding: 12px;
+    gap: 12px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  [data-tab="browse"] .leftRail .infoCard { flex: none; }
+  [data-tab="browse"] .leftRail .infoCardBody { overflow: visible; max-height: none; }
+
+  /* Read tab — text primary, PDF hidden */
+  [data-tab="read"] .readerPane { display: flex !important; height: 100%; flex-direction: column; }
+  .readerToolbar { padding: 8px 12px; min-height: 50px; }
+  .readerToolbar span { font-size: 12px; }
+  .pdfSurface { display: none; }
+  .textReader {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+  }
+
+  /* Ask tab — full-height chat */
+  [data-tab="ask"] .rightRail { display: flex !important; height: 100%; flex-direction: column; }
+  .chatCard { border-radius: 0; border-left: none; border-right: none; border-bottom: none; }
+
+  /* Tab bar */
+  .mobileTabBar {
+    display: flex;
+    flex-shrink: 0;
+    border-top: 2px solid var(--blue);
+    background: rgba(244, 234, 216, .96);
+    backdrop-filter: blur(12px);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .mobileTab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 4px 10px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font: 600 9px IBM Plex Mono, monospace;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    transition: color 0.15s;
+    border-radius: 0;
+  }
+  .mobileTab.active { color: var(--blue); }
+}
