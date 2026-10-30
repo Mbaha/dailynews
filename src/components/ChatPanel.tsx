@@ -26,6 +26,9 @@ type Source = {
   issue_date: string;
   file_name: string;
   page_number: number;
+  source_kind?: 'element' | 'chunk';
+  element_type?: string;
+  title?: string | null;
 };
 
 function formatDate(iso: string): string {
@@ -176,6 +179,8 @@ export function ChatPanel({ issueId }: { issueId: string | null }) {
               {sources.map((s) => (
                 <button key={s.n} className="chatSourceChip" onClick={() => router.push(`/?issue=${s.issue_id}&page=${s.page_number}`)}>
                   <strong>[{s.n}]</strong> {formatDate(s.issue_date)} · p{s.page_number}
+                  {s.element_type && s.element_type !== 'chunk' ? ` · ${s.element_type}` : ''}
+                  {s.title ? ` · ${s.title.slice(0, 48)}${s.title.length > 48 ? '…' : ''}` : ''}
                 </button>
               ))}
             </div>
