@@ -16,10 +16,39 @@ export async function GET(request: Request) {
     issueFilter = `AND i.id = $${params.length}`;
   }
 
+  const elements = await pool.query(`
+    WITH query AS (SELECT websearch_to_tsquery('english', $1) AS tsq)
+    SELECT
+      ('element:' || de.id::text) AS chunk_id,
+      'element' AS source_kind,
+      de.element_type,
+      de.title,
+      i.id::text AS issue_id,
+      i.issue_date::text,
+      i.file_name,
+      de.page_number,
+      ts_rank_cd(de.search_vector, query.tsq) AS rank,
+      CASE
+        WHEN de.title IS NOT NULL THEN '<b>' || de.element_type || '</b>: ' || de.title || ' — ' || ts_headline('english', de.text, query.tsq, 'MaxWords=34, MinWords=12, ShortWord=3')
+        ELSE '<b>' || de.element_type || '</b>: ' || ts_headline('english', de.text, query.tsq, 'MaxWords=34, MinWords=12, ShortWord=3')
+      END AS snippet
+    FROM document_elements de
+    JOIN issues i ON i.id = de.issue_id
+    CROSS JOIN query
+    WHERE de.search_vector @@ query.tsq ${issueFilter}
+    ORDER BY rank DESC, i.issue_date DESC
+    LIMIT 40
+  `, params);
+
+  if (elements.rowCount && elements.rowCount > 0) return NextResponse.json({ results: elements.rows, source: 'document_elements' });
+
   const result = await pool.query(`
     WITH query AS (SELECT websearch_to_tsquery('english', $1) AS tsq)
     SELECT
-      c.id::text AS chunk_id,
+      ('chunk:' || c.id::text) AS chunk_id,
+      'chunk' AS source_kind,
+      'chunk' AS element_type,
+      NULL::text AS title,
       i.id::text AS issue_id,
       i.issue_date::text,
       i.file_name,
@@ -34,5 +63,5 @@ export async function GET(request: Request) {
     LIMIT 40
   `, params);
 
-  return NextResponse.json({ results: result.rows });
+  return NextResponse.json({ results: result.rows, source: 'chunks' });
 }

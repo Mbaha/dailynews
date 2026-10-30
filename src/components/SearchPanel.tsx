@@ -9,6 +9,9 @@ type SearchResult = {
   file_name: string;
   page_number: number;
   snippet: string;
+  source_kind?: 'element' | 'chunk';
+  element_type?: string;
+  title?: string | null;
 };
 
 function escapeHtml(value: string) {
@@ -83,8 +86,8 @@ export function SearchPanel({ issueId }: { issueId: string | null }) {
           {results.map((result) => (
             <a className="resultItem" key={result.chunk_id} href={`/?issue=${result.issue_id}&page=${result.page_number}`}>
               <div>
-                <strong>{result.issue_date} · page {result.page_number}</strong>
-                <span>{result.file_name}</span>
+                <strong>{result.issue_date} · page {result.page_number}{result.element_type && result.element_type !== 'chunk' ? ` · ${result.element_type}` : ''}</strong>
+                <span>{result.title ? `${result.title} · ` : ''}{result.file_name}</span>
               </div>
               <p dangerouslySetInnerHTML={{ __html: safeSnippet(result.snippet, mode !== 'semantic') }} />
             </a>

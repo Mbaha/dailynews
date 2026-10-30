@@ -43,6 +43,27 @@ Database schema (PostgreSQL):
     embedding vector(768)   -- cosine distance: embedding <=> $1::vector
   )
 
+  document_elements(
+    id BIGINT PRIMARY KEY,
+    external_id TEXT,
+    issue_id BIGINT REFERENCES issues(id),
+    page_number INT,
+    element_type TEXT,      -- RAGAnything/MinerU element type: text, image, table, etc.
+    title TEXT,
+    text TEXT,
+    bbox JSONB,
+    source_file TEXT,
+    search_vector TSVECTOR  -- preferred for RAGAnything-aware text/layout search
+  )
+
+  document_element_embeddings(
+    element_id BIGINT REFERENCES document_elements(id),
+    model TEXT,
+    embedding vector(768)
+  )
+
+Prefer document_elements over chunks when questions involve article-level, visual/layout, caption, table, or RAGAnything-extracted content. Fall back to chunks for full-archive coverage until all PDFs have document_elements.
+
 Archive spans approximately July 2022 to May 2026. Total issues: 403. Total TOC items: ~8716 (4802 news, 3914 classified).`;
 
 const TOOLS: Anthropic.Tool[] = [
@@ -88,11 +109,37 @@ async function execSemanticSearch(query: string, limit = 30): Promise<unknown> {
   const cap = Math.min(limit, 100);
   try {
     const embedding = await embedText(query);
+    const elementResult = await pool.query(`
+      SELECT
+        'document_element' AS source_kind,
+        de.element_type,
+        de.title,
+        de.text AS chunk_text,
+        de.page_number,
+        i.id AS issue_id,
+        i.issue_date::text,
+        i.file_name,
+        round((1 - (e.embedding <=> $1::vector))::numeric, 3) AS similarity
+      FROM document_element_embeddings e
+      JOIN document_elements de ON de.id = e.element_id
+      JOIN issues i ON i.id = de.issue_id
+      WHERE e.model = $2
+      ORDER BY e.embedding <=> $1::vector
+      LIMIT $3
+    `, [vectorLiteral(embedding), EMBED_MODEL, cap]);
+
+    if (elementResult.rowCount && elementResult.rowCount > 0) {
+      return { rows: elementResult.rows, rowCount: elementResult.rowCount, source: 'document_elements' };
+    }
+
     const result = await pool.query(`
       SELECT
+        'chunk' AS source_kind,
+        'chunk' AS element_type,
+        NULL::text AS title,
         c.text AS chunk_text,
         c.page_number,
-        i.id   AS issue_id,
+        i.id AS issue_id,
         i.issue_date::text,
         i.file_name,
         round((1 - (e.embedding <=> $1::vector))::numeric, 3) AS similarity
@@ -103,7 +150,7 @@ async function execSemanticSearch(query: string, limit = 30): Promise<unknown> {
       ORDER BY e.embedding <=> $1::vector
       LIMIT $3
     `, [vectorLiteral(embedding), EMBED_MODEL, cap]);
-    return { rows: result.rows, rowCount: result.rowCount };
+    return { rows: result.rows, rowCount: result.rowCount, source: 'chunks' };
   } catch (err) {
     return { error: String(err) };
   }

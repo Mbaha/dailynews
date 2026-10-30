@@ -15,7 +15,12 @@
     "watch": "node --env-file .env.local scripts/watcher.mjs",
     "backfill-toc": "node --env-file .env.local scripts/backfill-toc.mjs",
     "mail:fetch": "node --env-file .env.local scripts/mail-fetch.mjs",
-    "inspect:pdfs": "python3 scripts/inspect_pdfs.py"
+    "inspect:pdfs": "python3 scripts/inspect_pdfs.py",
+    "raganything:setup": "python3 -m venv scripts/raganything-ingest/.venv && scripts/raganything-ingest/.venv/bin/pip install -r scripts/raganything-ingest/requirements.txt",
+    "ingest:raganything:test": "scripts/raganything-ingest/.venv/bin/python scripts/raganything-ingest/ingest.py --limit 2 --max-pages 3 --page-batch-size 3 --output data/raganything/dailynews-elements-test.json",
+    "ingest:raganything": "scripts/raganything-ingest/.venv/bin/python scripts/raganything-ingest/ingest.py --output data/raganything/dailynews-elements.json",
+    "import:raganything": "node --env-file .env.local scripts/import-raganything-elements.mjs data/raganything/dailynews-elements-test.json",
+    "embed:elements": "node --env-file .env.local scripts/embed-elements.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.102.0",

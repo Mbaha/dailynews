@@ -92,6 +92,43 @@ async function applySchema() {
     CREATE INDEX IF NOT EXISTS chunk_embeddings_vector_idx
       ON chunk_embeddings USING hnsw (embedding vector_cosine_ops);
 
+    CREATE TABLE IF NOT EXISTS document_elements (
+      id BIGSERIAL PRIMARY KEY,
+      external_id TEXT NOT NULL UNIQUE,
+      issue_id BIGINT NOT NULL REFERENCES issues(id) ON DELETE CASCADE,
+      page_id BIGINT REFERENCES pages(id) ON DELETE SET NULL,
+      page_number INTEGER NOT NULL,
+      element_type TEXT NOT NULL,
+      title TEXT,
+      text TEXT NOT NULL,
+      bbox JSONB,
+      image_path TEXT,
+      source_file TEXT NOT NULL,
+      extractor TEXT NOT NULL DEFAULT 'raganything',
+      parser TEXT,
+      parse_method TEXT,
+      raw_type TEXT,
+      item_index INTEGER,
+      chunk_index INTEGER,
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      imported_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      search_vector TSVECTOR GENERATED ALWAYS AS (to_tsvector('english', coalesce(title, '') || ' ' || coalesce(text, ''))) STORED
+    );
+
+    CREATE INDEX IF NOT EXISTS document_elements_issue_idx ON document_elements(issue_id, page_number);
+    CREATE INDEX IF NOT EXISTS document_elements_type_idx ON document_elements(element_type);
+    CREATE INDEX IF NOT EXISTS document_elements_search_idx ON document_elements USING GIN(search_vector);
+
+    CREATE TABLE IF NOT EXISTS document_element_embeddings (
+      element_id BIGINT PRIMARY KEY REFERENCES document_elements(id) ON DELETE CASCADE,
+      model TEXT NOT NULL,
+      embedding vector(768) NOT NULL,
+      embedded_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE INDEX IF NOT EXISTS document_element_embeddings_vector_idx
+      ON document_element_embeddings USING hnsw (embedding vector_cosine_ops);
+
     CREATE TABLE IF NOT EXISTS holidays (
       day DATE PRIMARY KEY,
       label TEXT NOT NULL,
